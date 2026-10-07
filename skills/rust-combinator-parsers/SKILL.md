@@ -33,7 +33,7 @@ where A: Fn(&'a str) -> ParseResult<'a, X>, B: Fn(&'a str) -> ParseResult<'a, Y>
 3. **Fail on the first byte.** `keyword(w)` is `inline`, then `strip_prefix(w)`, then a check that the next character is not alphanumeric or `_`. Do not lex a whole word and then compare it. Check reserved words with `matches!`, not `slice.contains`. `take_while` should take `Fn(u8) -> bool` and use `bytes().position`, which is safe for ASCII predicates.
 4. **Scan once.** Parse `digits (. digits)?` once and decide int or float from the result. Parse `word` once and match on `true`, `false`, keywords or a name. Merge statements that share a prefix: parse `expr`, then optionally `: type = …` or `= …`.
 5. These had no measurable effect: byte dispatch instead of a small `choice`, avoiding rescans of blank lines, and `one_of` tables instead of a `choice` of `sym`s (keep those only if they make the code clearer).
-6. The style of the code costs nothing. A grammar written entirely as `map(pair(...))` runs as fast as sequential `let (i, x) = p(i)?;`.
+6. **Write the grammar in the combinator style.** Compose grammar rules from combinators, for example `map(pair(...))`. Do not write grammar rules as sequential `let (i, x) = p(i)?;`. Sequential code is permitted only inside primitives that need control flow the combinators cannot express: the generic combinators in `combinators.rs`, and helpers such as `keyword`, `word` and `block` in `example.rs`. The combinator style runs as fast as the sequential style.
 7. Use Criterion with `harness = false` and assert equal ASTs before timing. Single `Instant` runs gave ±8% noise. Compare ratios within one run, because machine state can change absolute times by 2×.
 
 ## Recursion
